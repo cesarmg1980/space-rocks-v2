@@ -2,7 +2,6 @@ extends RigidBody2D
 
 var screensize = Vector2()
 
-
 export (int) var engine_power
 export (int) var spin_power
 
@@ -12,9 +11,16 @@ var rotation_dir = 0
 enum {INIT, ALIVE, INVULNERABLE, DEAD}
 var state = null
 
+signal shoot
+export (PackedScene) var Bullet
+export (float) var fire_rate
+
+var can_shoot = true
+
 func _ready():
 	screensize = get_viewport().get_visible_rect().size
 	change_state(ALIVE)
+	$GunTimer.wait_time = fire_rate
 
 func change_state(new_state):
 	match new_state:
@@ -42,6 +48,15 @@ func get_input():
 		rotation_dir += 1
 	if Input.is_action_pressed("rotate_left"):
 		rotation_dir -= 1
+	if Input.is_action_pressed("shoot"):
+		shoot()
+
+func shoot():
+	if state == INVULNERABLE:
+		return
+	emit_signal('shoot', Bullet, $Muzzle.global_position, rotation)
+	can_shoot = false
+	$GunTimer.start()
 
 func _integrate_forces(physics_state):
 	set_applied_force(thrust.rotated(rotation))
@@ -56,3 +71,6 @@ func _integrate_forces(physics_state):
 	if xform.origin.y < 0:
 		xform.origin.y = screensize.y
 	physics_state.set_transform(xform)
+
+func _on_GunTimer_timeout():
+	can_shoot = true
