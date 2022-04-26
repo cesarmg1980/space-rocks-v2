@@ -8,7 +8,7 @@ func _ready():
 	randomize()
 	screensize = get_viewport().get_visible_rect().size
 	$Player.screensize = screensize
-	for i in range(3):
+	for _i in range(3):
 		spawn_rock(3)
 
 func spawn_rock(size, pos=null, vel=null):

@@ -7,9 +7,7 @@
 [sub_resource type="PhysicsMaterial" id=1]
 bounce = 1.0
 
-[node name="Rock" type="RigidBody2D" groups=[
-"rocks",
-]]
+[node name="Rock" type="RigidBody2D" groups=["rocks"]]
 physics_material_override = SubResource( 1 )
 linear_damp = 0.0
 angular_damp = 0.0

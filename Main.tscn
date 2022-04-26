@@ -28,4 +28,7 @@ curve = SubResource( 1 )
 [node name="RockSpawn" type="PathFollow2D" parent="RockPath"]
 
 [node name="Rocks" type="Node" parent="."]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
 [connection signal="shoot" from="Player" to="." method="_on_Player_shoot"]
