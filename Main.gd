@@ -3,6 +3,35 @@ extends Node
 export (PackedScene) var Rock
 
 var screensize = Vector2()
+var level = 0
+var score = 0
+var playing = false
+
+func new_game():
+	for rock in $Rocks.get_children():
+		rock.queue_free()
+	level = 0
+	score = 0
+	$Hud.update_score(score)
+	$Player.start()
+	$Hud.show_message("Get Ready!")
+	yield($Hud/MessageTimer, "timeout")
+	playing = true
+	new_level()
+
+func new_level():
+	level += 1
+	$Hud.show_message("Wave %s" % level)
+	for i in range(level):
+		spawn_rock(3)
+
+func game_over():
+	playing = false
+	$Hud.game_over()
+
+func _process(delta):
+	if playing and $Rocks.get_child_count() == 0:
+		new_level()
 
 func _ready():
 	randomize()
