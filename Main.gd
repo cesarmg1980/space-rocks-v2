@@ -6,6 +6,8 @@ var screensize = Vector2()
 var level = 0
 var score = 0
 var playing = false
+var number_of_rocks_on_level = 0
+
 
 func new_game():
 	for rock in $Rocks.get_children():
@@ -19,11 +21,15 @@ func new_game():
 	playing = true
 	new_level()
 
+
 func new_level():
 	level += 1
+	for rock in $Rocks.get_children():
+		rock.queue_free()
 	$Hud.show_message("Wave %s" % level)
 	for i in range(level):
 		spawn_rock(3)
+		number_of_rocks_on_level += 1
 
 func game_over():
 	playing = false
@@ -66,5 +72,15 @@ func _on_Rock_exploded(size, radius, pos, vel):
 		var newpos = pos + dir * radius
 		var newvel = dir * vel.length() * 1.1
 		spawn_rock(size - 1, newpos, newvel)
-
-
+	
+func _input(event):
+	if event.is_action_pressed("pause"):
+		if not playing:
+			return
+		get_tree().paused = not get_tree().paused
+	if get_tree().paused:
+		$Hud/MessageLabel.text = "Paused"
+		$Hud/MessageLabel.show()
+	else:
+		$Hud/MessageLabel.text = ""
+		$Hud/MessageLabel.hide()
