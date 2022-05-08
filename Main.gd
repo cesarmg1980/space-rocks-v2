@@ -1,6 +1,7 @@
 extends Node
 
 export (PackedScene) var Rock
+export (PackedScene) var Enemy
 
 var screensize = Vector2()
 var level = 0
@@ -30,14 +31,19 @@ func new_level():
 	for i in range(level):
 		spawn_rock(3)
 		number_of_rocks_on_level += 1
+	$EnemyTimer.wait_time = rand_range(5, 10)
+	$EnemyTimer.start()
+
 
 func game_over():
 	playing = false
 	$Hud.game_over()
 
+
 func _process(delta):
 	if playing and $Rocks.get_child_count() == 0:
 		new_level()
+
 
 func _ready():
 	randomize()
@@ -45,6 +51,7 @@ func _ready():
 	$Player.screensize = screensize
 	for _i in range(3):
 		spawn_rock(3)
+
 
 func spawn_rock(size, pos=null, vel=null):
 	if !pos:
@@ -59,10 +66,12 @@ func spawn_rock(size, pos=null, vel=null):
 	$Rocks.add_child(r)
 	r.connect('exploded', self, '_on_Rock_exploded')
 
+
 func _on_Player_shoot(bullet, pos, dir):
 	var b = bullet.instance()
 	b.start(pos, dir)
 	add_child(b)
+
 
 func _on_Rock_exploded(size, radius, pos, vel):
 	if size <= 1:
@@ -73,6 +82,7 @@ func _on_Rock_exploded(size, radius, pos, vel):
 		var newvel = dir * vel.length() * 1.1
 		spawn_rock(size - 1, newpos, newvel)
 	
+
 func _input(event):
 	if event.is_action_pressed("pause"):
 		if not playing:
@@ -84,3 +94,12 @@ func _input(event):
 	else:
 		$Hud/MessageLabel.text = ""
 		$Hud/MessageLabel.hide()
+
+
+func _on_EnemyTimer_timeout():
+	var e = Enemy.instance()
+	add_child(e)
+	e.target = $Player
+	e.connect('shoot', self, '_on_Player_shoot')
+	$EnemyTimer.wait_time = rand_range(20, 40)
+	$EnemyTimer.start()
