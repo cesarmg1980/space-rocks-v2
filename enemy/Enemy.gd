@@ -16,12 +16,13 @@ func _ready():
 	follow = PathFollow2D.new()
 	path.add_child(follow)
 	follow.loop = false
+	$AnimationPlayer.play("rotate")
 	
 
 func _process(delta):
 	follow.offset += speed * delta
 	position = follow.global_position
-	if follow.unit_offset > 1:
+	if follow.unit_offset >= 1:
 		self.queue_free()
 
 
