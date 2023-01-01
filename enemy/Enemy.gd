@@ -54,6 +54,7 @@ func explode():
 	$Sprite.hide()
 	$Explosion.show()
 	$Explosion/AnimationPlayer.play("explosion")
+	$ExplosionSound.play()
 	#$ExplodeSound.play()
 
 
