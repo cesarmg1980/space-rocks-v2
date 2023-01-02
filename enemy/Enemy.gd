@@ -1,6 +1,7 @@
 extends Area2D
 
 signal shoot
+signal destroyed
 
 export (PackedScene) var Bullet
 export (int) var speed = 200
@@ -36,12 +37,14 @@ func shoot():
 	var dir = target.global_position - global_position
 	dir = dir.rotated(rand_range(-0.1, 0.1)).angle()
 	emit_signal('shoot', Bullet, global_position, dir)
+	$ShootSound.play()
 
 
 func take_damage(amount):
 	health -= amount
 	$AnimationPlayer.play("flash")
 	if health <= 0:
+		emit_signal("destroyed")
 		explode()
 	yield($AnimationPlayer, 'animation_finished')
 	$AnimationPlayer.play("rotate")
@@ -55,7 +58,6 @@ func explode():
 	$Explosion.show()
 	$Explosion/AnimationPlayer.play("explosion")
 	$ExplosionSound.play()
-	#$ExplodeSound.play()
 
 
 func _on_AnimationPlayer_animation_finished(anim_name):
@@ -67,6 +69,10 @@ func _on_GunTimer_timeout():
 
 
 func _on_Enemy_body_entered(body):
-	if body.name == 'Player':
-		pass
+	if not body.name == 'Player':
+		explode()
+		return
+	body.shield -= 50
 	explode()
+	emit_signal("destroyed")
+	

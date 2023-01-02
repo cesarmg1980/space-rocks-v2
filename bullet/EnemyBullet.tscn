@@ -10,7 +10,7 @@ height = 22.1612
 [node name="EnemyBullet" type="Area2D"]
 scale = Vector2( 0.25, 0.25 )
 script = ExtResource( 1 )
-speed = 500
+speed = 350
 
 [node name="Sprite" type="Sprite" parent="."]
 scale = Vector2( 0.5, 0.5 )

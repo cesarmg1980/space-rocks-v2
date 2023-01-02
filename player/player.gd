@@ -5,9 +5,14 @@ enum {INIT, ALIVE, INVULNERABLE, DEAD}
 signal shoot
 signal lives_changed
 signal dead
+signal shield_changed
 
 export (int) var engine_power
 export (int) var spin_power
+export (int) var max_shield
+export (float) var shield_regen
+
+var shield = 0 setget set_shield
 
 var screensize = Vector2()
 var thrust = Vector2()
@@ -19,13 +24,23 @@ var state = null
 export (PackedScene) var Bullet
 export (float) var fire_rate
 
+func set_shield(value):
+	if value > max_shield:
+		value = max_shield
+	shield = value
+	emit_signal("shield_changed", shield)
+	if shield <= 0:
+		self.lives -= 1
+
 func set_lives(value):
+	self.shield = max_shield
 	lives = value
 	emit_signal("lives_changed", lives)
 
 func start():
 	$Sprite.show()
 	self.lives = 3
+	self.shield = max_shield
 	change_state(ALIVE)
 
 func _ready():
@@ -53,13 +68,16 @@ func change_state(new_state):
 	state = new_state
 
 func _process(delta):
+	self.shield += shield_regen * delta
 	get_input()
 
 func get_input():
+	$Exhaust.emitting = false
 	thrust = Vector2()
 	if state in [DEAD, INIT]:
 		return
 	if Input.is_action_pressed("thrust"):
+		$Exhaust.emitting = true
 		thrust = Vector2(engine_power, 0)
 		if not $EngineSound.playing:
 			$EngineSound.play()
@@ -110,7 +128,7 @@ func _on_Player_body_entered(body):
 		body.explode()
 		$Explosion.show()
 		$Explosion/AnimationPlayer.play("explosion")
-		self.lives -= 1
+		self.shield -= body.size * 25
 		if lives <= 0:
 			change_state(DEAD)
 		else:

@@ -3,19 +3,24 @@ extends Node
 export (PackedScene) var Rock
 export (PackedScene) var Enemy
 
+const ROCK_SIZE_BIG = 3
+
 var screensize = Vector2()
 var level = 0
-var score = 0
 var playing = false
 var number_of_rocks_on_level = 0
+var scoring_for_rocks = {3: 10, 2: 20, 1: 30}
+var scoring_for_enemies = 50
+
+signal update_score
 
 
 func new_game():
+	$GameMusic.play()
 	for rock in $Rocks.get_children():
 		rock.queue_free()
 	level = 0
-	score = 0
-	$Hud.update_score(score)
+	$Hud.update_score(0)
 	$Player.start()
 	$Hud.show_message("Get Ready!")
 	yield($Hud/MessageTimer, "timeout")
@@ -29,7 +34,7 @@ func new_level():
 		rock.queue_free()
 	$Hud.show_message("Wave %s" % level)
 	for i in range(level):
-		spawn_rock(3)
+		spawn_rock(ROCK_SIZE_BIG)
 		number_of_rocks_on_level += 1
 	$EnemyTimer.wait_time = rand_range(5, 10)
 	$EnemyTimer.start()
@@ -38,9 +43,11 @@ func new_level():
 func game_over():
 	playing = false
 	$Hud.game_over()
+	$GameMusic.stop()
 
 
 func _process(delta):
+	self.connect("update_score", get_node("Hud"), "update_score")
 	if playing and $Rocks.get_child_count() == 0:
 		new_level()
 
@@ -49,8 +56,6 @@ func _ready():
 	randomize()
 	screensize = get_viewport().get_visible_rect().size
 	$Player.screensize = screensize
-	for _i in range(3):
-		spawn_rock(3)
 
 
 func spawn_rock(size, pos=null, vel=null):
@@ -74,6 +79,7 @@ func _on_Player_shoot(bullet, pos, dir):
 
 
 func _on_Rock_exploded(size, radius, pos, vel):
+	emit_signal("update_score", scoring_for_rocks.get(size))
 	if size <= 1:
 		return
 	for offset in [-1, 1]:
@@ -81,6 +87,7 @@ func _on_Rock_exploded(size, radius, pos, vel):
 		var newpos = pos + dir * radius
 		var newvel = dir * vel.length() * 1.1
 		spawn_rock(size - 1, newpos, newvel)
+	
 	
 
 func _input(event):
@@ -101,5 +108,9 @@ func _on_EnemyTimer_timeout():
 	add_child(e)
 	e.target = $Player
 	e.connect('shoot', self, '_on_Player_shoot')
+	e.connect("destroyed", self, "_on_enemy_destroyed")
 	$EnemyTimer.wait_time = rand_range(20, 40)
 	$EnemyTimer.start()
+
+func _on_enemy_destroyed():
+	emit_signal("update_score", scoring_for_enemies)
